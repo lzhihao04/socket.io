@@ -21,6 +21,7 @@ export default {
         senderimg:this.myInfo.img,//发送者的img
         time:time.toLocaleString(),//发送时间
         msg: this.input,//消息内容
+        room: this.room
       }
       /* 自己的信息直接push到数组中 */
       // store.commit('SOCKET_updateChatMessageList',data);
@@ -32,6 +33,9 @@ export default {
   computed:{
     myInfo(){
       return store.state.myInfo;
+    },
+    room(){
+      return store.state.room;
     },
   },
 };

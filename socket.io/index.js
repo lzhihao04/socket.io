@@ -34,7 +34,7 @@ io.on('connection', function (socket) {
             userList.push(data);
             socket.name=data.name;
             callback(true);
-            io.timeout(5000).emit('login',userList);
+            io.emit('login',userList);
         }else{
             console.log('用户登录失败！：',data);
             callback(false);
@@ -43,12 +43,17 @@ io.on('connection', function (socket) {
 
     /* 监听群聊事件 */
     socket.on('groupChat',data=>{
+        io.to(`room${data.room}`).emit('updateChatMessageList',data);
         // 发送给所有客户端，除了发送者
         // socket.broadcast.emit('updateChatMessageList',data);
         // 发送给所有客户端，包括发送者
-        io.volatile.emit('updateChatMessageList',data);
+        // io.volatile.emit('updateChatMessageList',data);
     });
-
+    socket.on('room',data=>{
+        console.log('data',data)
+        socket.join(`room${data}`);
+        io.to(`room${data}`).emit(`room`, 'aaa');
+    });
     /* 监听私聊事件 */
     // socket.on('privateChat',data=>{
     //     io.sockets.sockets.forEach(iss=>{

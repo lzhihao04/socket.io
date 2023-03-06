@@ -19,22 +19,31 @@
     </div>
     <!-- 聊天 -->
     <el-container v-else>
-      <el-container>
-        <el-header> 
-          <span>高级人员会议</span>
-        </el-header>
-        <el-main>
-          <my-main />
-        </el-main>
-        <el-footer>
-          <my-footer />
-        </el-footer>
-      </el-container>
-      <el-aside width="50px">
-        <div style="padding: 5px 0;" v-for="item in userList" :key="item.name">
-          <el-avatar :src="item.img"></el-avatar>
+      <el-header style="background: #fff;"> 
+        <div class="roomTab">
+          <span @click="changeRoom(0)">高级人员会议</span>
+          <span @click="changeRoom(1)">群聊1</span>
+          <span @click="changeRoom(2)">群聊2</span>
         </div>
-      </el-aside>
+      </el-header>
+      <el-container>
+        <el-container>
+          <el-header> 
+            <span>{{roomName}}</span>
+          </el-header>
+          <el-main>
+            <my-main />
+          </el-main>
+          <el-footer>
+            <my-footer />
+          </el-footer>
+        </el-container>
+        <el-aside width="50px">
+          <div style="padding: 5px 0;" v-for="item in userList" :key="item.name">
+            <el-avatar :src="item.img"></el-avatar>
+          </div>
+        </el-aside>
+      </el-container>
     </el-container>
   </div>
 </template>
@@ -51,6 +60,7 @@ export default {
       activeName:'first',
       username:'',
       choosed:'',
+      roomName: '高级人员会议',
       avatarList:[
         'http://img.mp.itc.cn/upload/20170808/5861bc790e654d56bc9289c567b44875_th.jpg',
         'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
@@ -71,23 +81,33 @@ export default {
       if(this.username&&this.choosed){
         this.$socket.connect();
         this.$socket.on("connect", () => {
-          console.log('this.$socket.connected',this.$socket.connected)
           if(this.$socket.connected){
             this.$socket.emit('login',{name:this.username,img:this.choosed},(result)=>{
-            if(result){
-              store.commit('setMyInfo',{
-                img:this.choosed,
-                name:this.username,
-              });
-              
-            }else{
-              this.$message.error('用户名重复！');
-            }
-          });
+              if(result){
+                store.commit('setMyInfo',{
+                  img:this.choosed,
+                  name:this.username,
+                });
+                this.changeRoom(0)//加入默认群聊
+              }else{
+                this.$message.error('用户名重复！');
+              }
+            });
           }
         });
+        
       }
     },
+    changeRoom(room){
+      const type = {
+        0: '高级人员会议',
+        1: '群聊1',
+        2: '群聊2',
+      }
+      this.roomName = type[room];
+      this.$socket.emit('room',room);
+      store.commit('setRoom',room);
+    }
   },
   computed:{
     isLogin(){
@@ -156,5 +176,12 @@ html,body,#app{
 
 body > .el-container {
   margin-bottom: 40px;
+}
+.roomTab{
+  width: 100%;
+  height: 100%;
+}
+.roomTab span{
+  margin: 10px;
 }
 </style>

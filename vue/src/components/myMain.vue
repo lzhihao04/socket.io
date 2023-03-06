@@ -28,7 +28,7 @@ export default {
   },
   computed:{
     msgList(){
-      return store.state.chatMessageList;
+      return store.state.chatMessageList[store.state.room];
     },
     myInfo(){
       return store.state.myInfo;
