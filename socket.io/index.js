@@ -10,16 +10,22 @@ var io = require('socket.io')(http, {
 /* 接收在线人数，传给前端，保证在线人数是最新的 */
 var userList=[];
 
-// io.of('/test') //多路复用
+//多路复用
 // io.of('/test').on('connection', function (socket) {
-//     console.log('socket',userList)
-//     socket.on("test", (data,callback) => {
-//         console.log(`room11111: ${room} was created`);
+//     console.log('socket111',userList)
+//     socket.on("login", (data,callback) => {
+//         console.log('成功连接test线路')
 //         callback('成功连接test线路')
 //     });
 // });
+
+// 中间件
+io.use((socket, next) => {
+    next();
+});
+
 io.on('connection', function (socket) {
-    console.log('socket',userList)
+    console.log('socket2222',userList)
     /* 监听用户登录事件,并将数据放到socket实例的属性上 */
     socket.on('login',(data,callback)=>{
         /* 遍历服务器连接对象 */
@@ -43,12 +49,14 @@ io.on('connection', function (socket) {
 
     /* 监听群聊事件 */
     socket.on('groupChat',data=>{
+        // 发送到某个房间（群聊）包括发送者，socket.to不包括发送者
         io.to(`room${data.room}`).emit('updateChatMessageList',data);
         // 发送给所有客户端，除了发送者
         // socket.broadcast.emit('updateChatMessageList',data);
         // 发送给所有客户端，包括发送者
         // io.volatile.emit('updateChatMessageList',data);
     });
+    // 进入群聊房间
     socket.on('room',data=>{
         console.log('data',data)
         socket.join(`room${data}`);
@@ -70,12 +78,9 @@ io.on('connection', function (socket) {
         let index=userList.findIndex(i=>i.name==socket.name);
         if(index!=-1){
             userList.splice(index,1);
-            /* 通知前端 */
+            /* 通知客户端 */
             io.emit('login',userList);
         }
-    });
-    io.of("/test").adapter.on("createRoom", (room) => {
-        console.log(`room11111: ${room} was created`);
     });
 });
 
