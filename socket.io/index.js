@@ -8,7 +8,11 @@ var io = require('socket.io')(http, {
     }
 });
 /* 接收在线人数，传给前端，保证在线人数是最新的 */
-var userList=[];
+var userList={
+    0:[],
+    1:[],
+    2:[],
+};
 
 //多路复用
 // io.of('/test').on('connection', function (socket) {
@@ -25,7 +29,6 @@ io.use((socket, next) => {
 });
 
 io.on('connection', function (socket) {
-    console.log('socket2222',userList)
     /* 监听用户登录事件,并将数据放到socket实例的属性上 */
     socket.on('login',(data,callback)=>{
         /* 遍历服务器连接对象 */
@@ -36,11 +39,8 @@ io.on('connection', function (socket) {
             }
         });
         if(islogin){
-            // console.log('用户登录成功：',data);
-            userList.push(data);
             socket.name=data.name;
             callback(true);
-            io.emit('login',userList);
         }else{
             console.log('用户登录失败！：',data);
             callback(false);
@@ -59,8 +59,12 @@ io.on('connection', function (socket) {
     // 进入群聊房间
     socket.on('room',data=>{
         console.log('data',data)
-        socket.join(`room${data}`);
-        io.to(`room${data}`).emit(`room`, 'aaa');
+        socket.join(`room${data.room}`);
+        let index=userList[data.room].findIndex(i=>i.name==socket.name);
+        if(index==-1){
+            userList[data.room].push(data)
+            io.emit('login',userList);
+        }
     });
     /* 监听私聊事件 */
     // socket.on('privateChat',data=>{
@@ -75,12 +79,15 @@ io.on('connection', function (socket) {
     /* 用户掉线 */
     socket.on('disconnect',()=>{
         /* 删除用户 */
-        let index=userList.findIndex(i=>i.name==socket.name);
-        if(index!=-1){
-            userList.splice(index,1);
-            /* 通知客户端 */
-            io.emit('login',userList);
-        }
+        Object.keys(userList).map((item)=>{
+            let index=userList[item].findIndex(i=>i.name==socket.name);
+            if(index!=-1){
+                userList[item].splice(index,1);
+                /* 通知客户端 */
+                io.emit('login',userList);
+            }
+        })
+       
     });
 });
 

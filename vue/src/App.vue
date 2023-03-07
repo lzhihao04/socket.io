@@ -82,13 +82,13 @@ export default {
         this.$socket.connect();
         this.$socket.on("connect", () => {
           if(this.$socket.connected){
+            this.changeRoom(0)//加入默认群聊
             this.$socket.emit('login',{name:this.username,img:this.choosed},(result)=>{
               if(result){
                 store.commit('setMyInfo',{
                   img:this.choosed,
                   name:this.username,
                 });
-                this.changeRoom(0)//加入默认群聊
               }else{
                 this.$message.error('用户名重复！');
               }
@@ -105,7 +105,7 @@ export default {
         2: '群聊2',
       }
       this.roomName = type[room];
-      this.$socket.emit('room',room);
+      this.$socket.emit('room',{name:this.username,img:this.choosed,room});
       store.commit('setRoom',room);
     }
   },
@@ -114,7 +114,7 @@ export default {
       return store.state.isLogin;
     },
     userList(){
-      return store.state.userList;
+      return store.state.userList[store.state.room];
     },
     myInfo(){
       return store.state.myInfo;

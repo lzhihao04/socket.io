@@ -13,7 +13,7 @@ export default new Vuex.Store({
             name:'',
         },
         /* 用户列表 */
-        userList:[],
+        userList:{},
         /* 聊天记录 */
         chatMessageList:{
             0:[],
